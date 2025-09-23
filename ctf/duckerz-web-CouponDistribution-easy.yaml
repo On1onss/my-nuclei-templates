@@ -1,0 +1,22 @@
+id: duckerz_web_CouponDistribution_easy
+info:
+  name: Detect vuln for Coupon distribution
+  author: Bb0LP
+  severity: low
+  description: Check SQLi for task Coupon distribution
+  reference: http://tasks.duckerz.ru:30070/
+  tags: ctf,web
+http:
+  - raw:
+      - |
+        POST / HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        coupon='
+    matchers:
+      - type: word
+        part: body
+        words:
+          - SQLSTATE
+

